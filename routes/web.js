@@ -18,8 +18,9 @@ const farmerIndexController = require('../controllers/farmer/indexController');
 
 const buyerIndexController = require('../controllers/buyer/indexController');
 const orderController = require('../controllers/buyer/orderController');
-
+const resultController = require('../controllers/buyer/resultController');
 const currentbidController = require('../controllers/buyer/currentbidController');
+
 
 module.exports = function (app) {
   app.get('/login', authLoginController.login);
@@ -44,6 +45,9 @@ module.exports = function (app) {
   app.post('/admin/manageUsers/approve/:id', adminManageUserController.approveUser); // Added
   app.post('/admin/manageUsers/deactivate/:id', adminManageUserController.deactivateUser); // Added
   app.get('/admin/manageAuction', adminManageAuctionController.index);
+  app.post('/admin/order/delete', adminManageAuctionController.deleteOrder); // Correct delete route
+
+
   app.get('/admin/manageItem', adminManageItemController.index);
   app.post('/admin/manageItem/approve/:id', adminManageItemController.approveProduct);
   app.post('/admin/manageItem/reject/:id', adminManageItemController.rejectProduct);
@@ -53,11 +57,12 @@ module.exports = function (app) {
   app.get('/farmer/index', farmerIndexController.index);  // Ensure this is correct
   app.post('/farmer/addProduct', farmerIndexController.addProduct);
   app.get('farmer/getBuyers', farmerIndexController.getBuyers);
+  app.get('/farmer/getBuyersForProducts/:productId', farmerIndexController.getBuyersForProducts);
+
   app.get('/farmer/notification', farmerIndexController.markNotificationAsRead);
   app.get('/farmer/getFarmerOrders', farmerIndexController.getFarmerOrders);
   app.post('/farmer/processOrder', farmerIndexController.processOrder);
   app.get('/farmer/deleteOrder/:id', farmerIndexController.deleteOrder);
-  app.get('/farmer/showBuyer', farmerIndexController.showBuyer);
   app.get('/farmer/showParticipated', farmerIndexController.showParticipated);
 
 
@@ -66,6 +71,9 @@ module.exports = function (app) {
   app.get('/buyer/index', buyerIndexController.index);
   app.get('/buyer/getNotifications', buyerIndexController.getNotifications);
   app.post('/buyer/confirm-purchase', buyerIndexController.confirmPurchase);
+  app.get('/buyer/result', resultController.result);
+
+
   app.post('/buyer/getProducts', orderController.getProducts);
   app.post('/buyer/confirm-participation', buyerIndexController.confirmParticipation);
   app.get('/buyer/current-bids', buyerIndexController.getCurrentBids);

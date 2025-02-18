@@ -30,7 +30,7 @@
                 <input type="text" class="form-control" id="verificationCode" name="verificationCode" pattern="^[A-Z0-9]{6}$" placeholder="Enter verification code">
               </div>
               <input type="hidden" name="token" value="<%= userToken.token %>">
-              <button type="submit" name="action" value="cancel" class="btn btn-danger">Cancel</button>
+              <button type="button" class="btn btn-danger" onclick="window.location.href='/register'">Cancel</button>
               <button type="submit" name="action" value="submit" class="btn btn-primary">Verify</button>
               <div class="mr-auto mb-20 align-items-center d-flex">
                 Don't Receive Code?<button type="submit" name="action" value="resend" class="btn btn-link text-primary">Resend</button>
