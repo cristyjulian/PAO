@@ -136,9 +136,18 @@
         </div>
 
         <!-- Timer -->
+        <!-- Timer -->
         <div class="timer">
-            <p>Session Time Left: <strong id="timer">00 : 57 : 10</strong></p>
-        </div>
+            <p>
+              Auction Start:
+              <strong><%= new Date(auctionStart).toLocaleString() %></strong>
+            </p>
+            <p>
+              Auction End:
+              <strong><%= new Date(auctionEnd).toLocaleString() %></strong>
+            </p>
+            <p>Session Time Left: <strong id="timer">Loading...</strong></p>
+          </div>
 
         <!-- Leaderboard Section -->
         <div class="leaderboard">
@@ -162,6 +171,7 @@
             <% topBids.forEach((bid, index) => { %>
                 <%if(index > 2){%>
                     <div class="bidder">
+                        <p><strong><%= index + 1 %></strong></p> <!-- Ranking Number -->
                         <p>Name: <strong><%= bid.buyer.firstName ?? '' %> <%= bid.buyer.lastName ?? '' %></strong></p>
                         <p>Submitted Price: <strong> ₱<%= bid.bid %></strong></p>
                     </div>
@@ -207,29 +217,37 @@
         
 
         // Timer Countdown
-        function startTimer(duration, display) {
-            let timer = duration, minutes, seconds;
-            setInterval(function () {
-                minutes = parseInt(timer / 60, 10);
-                seconds = parseInt(timer % 60, 10);
+        function startCountdown(auctionEndTime) {
+        function updateTimer() {
+          const now = new Date().getTime();
+          const endTime = new Date(auctionEndTime).getTime();
+          const remainingTime = endTime - now;
 
-                minutes = minutes < 10 ? "0" + minutes : minutes;
-                seconds = seconds < 10 ? "0" + seconds : seconds;
+          if (remainingTime > 0) {
+            let hours = Math.floor((remainingTime / (1000 * 60 * 60)) % 24);
+            let minutes = Math.floor((remainingTime / (1000 * 60)) % 60);
+            let seconds = Math.floor((remainingTime / 1000) % 60);
 
-                display.textContent = minutes + " : " + seconds;
+            hours = hours < 10 ? "0" + hours : hours;
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
 
-                if (--timer < 0) {
-                    timer = 0;
-                }
-            }, 1000);
+            document.getElementById("timer").textContent =
+              hours + " : " + minutes + " : " + seconds;
+          } else {
+            document.getElementById("timer").textContent = "Auction Ended";
+            clearInterval(timerInterval);
+          }
         }
-        window.onload = function () {
-            const sessionTime = 57 * 60; // 57 minutes
-            const display = document.querySelector('#timer');
-            startTimer(sessionTime, display);
-        };
 
-         function leaveBid() {
+        updateTimer();
+        const timerInterval = setInterval(updateTimer, 1000);
+      }
+
+      window.onload = function () {
+        const auctionEndTime = "<%= auctionEnd %>"; // Pass from server
+        startCountdown(auctionEndTime);
+      };         function leaveBid() {
             window.location.href = "/buyer/index"; // Redirect to the buyer index page
         }
     </script>

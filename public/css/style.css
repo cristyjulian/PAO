@@ -41,6 +41,14 @@ header {
     border-radius: 50%;
     cursor: pointer;
 }
+#editPassword {
+    width: 100%; /* Full width */
+    padding: 10px; /* Add padding */
+    margin-top: 10px; /* Space above */
+    border: 1px solid #ccc; /* Light border */
+    border-radius: 5px; /* Rounded edges */
+    font-size: 16px; /* Readable font size */
+}
 
 /* Navigation Links */
 .nav-links {

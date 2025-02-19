@@ -6,7 +6,7 @@ const Notification = require("../../models/notification");
 const Order = require("../../models/order");
 const AuctionParticipation = require("../../models/participateAuction.js");
 const AuctionSession = require("../../models/auctionSession");
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 module.exports.index = async (req, res) => {
   try {
@@ -18,38 +18,50 @@ module.exports.index = async (req, res) => {
       req.flash("error", "Please log in first.");
       return res.redirect("/login");
     }
+    console.log('req.params.id:', req.params)
+    // Fetch auction product details
+//     const product = await Product.findOne({
+//       _id: req.params.productId,
+//       status: "approved",
+//     }).populate("seller", "firstName lastName");
+// // AuctionSession
+//     if (!product) {
+//       req.flash("error", "Auction not found or has ended.");
+//       return res.redirect("/buyer");
+//     }
 
-    console.log('req.params.id:', req.params);
-    
-    // Fetch auction participation details and ensure product.seller is populated
-    const participation = await AuctionParticipation.findById(req.params.productId)
-      .populate({
-        path: "product",
-        populate: { path: "seller", select: "firstName lastName" } // Ensure seller details are included
-      })
-      .populate("buyer")
-      .lean();
-
-    if (!participation || !participation.product) {
-      req.flash("error", "Auction not found or has ended.");
-      return res.redirect("/buyer");
-    }
-
+    const participation = await AuctionParticipation.findById(req.params.productId).populate('product').populate('buyer').populate('seller').lean();
     console.log("Participation:", participation);
-    console.log("Product Data:", participation.product);
-    console.log("Seller Data:", participation.product.seller);
-    
     const auctionSessioned = await AuctionSession.find({
-      product: participation.product._id,
-      seller: participation.product.seller._id
-    }).populate("buyer").populate("seller").populate("product").lean();
+        product: participation.product._id,
+        seller: participation.seller._id
+      }).populate('buyer').populate('seller').populate('product').lean(); // Use .lean() for better performance if only reading data
+      
+      // Extract all bids from the auction sessions
+      const allBids = auctionSessioned.flatMap(session => session || []);
+      
+      // Sort bids by bid amount in descending order (highest first)
+      const topBids = allBids
+      .map(bid => ({ ...bid, bid: Number(bid.bid) })) // Convert bid to a number
+      .sort((a, b) => b.bid - a.bid) // Sort from highest to lowest
+    
 
-    const allBids = auctionSessioned.flatMap(session => session || []);
-    const topBids = allBids
-      .map(bid => ({ ...bid, bid: Number(bid.bid) }))
-      .sort((a, b) => b.bid - a.bid);
+console.log("🏆 Top Bids:", topBids);
+ // Get top 5
+      
+      console.log("Top 3 Highest Bids:", topBids);
+      
+// Extract auction start and end time
+    const auctionStart = participation.product.auctionStart;
+    const auctionEnd = participation.product.auctionEnd;
 
-    console.log("🏆 Top Bids:", topBids);
+    console.log("Auction Start:", auctionStart);
+    console.log("Auction End:", auctionEnd);
+    /**
+     * what we need to do is filter this auctionSessioned.bid to the highest bid.
+     * 1. result will only return 3 highest
+     */
+
 
     // Fetch unread notifications
     const notifications = await Notification.find({
@@ -68,6 +80,10 @@ module.exports.index = async (req, res) => {
       product: participation.product,
       participation,
       notifications,
+      auctionStart, // Pass to the view
+      auctionEnd,   // Pass to the view
+      sellerFirstName: participation.seller.firstName || 'N/A',
+      sellerLastName: participation.seller.lastName || 'N/A'
     });
   } catch (error) {
     console.error("Error loading Auction Session Room:", error);
@@ -80,15 +96,15 @@ module.exports.doBid = async (req, res) => {
   try {
     console.log("Session Data:", req.session);
     console.log("req", req.body);
-
-    // Check if user is logged in
+    console.log("req", req.params.productId);
+    // // Check if user is logged in
     const userLogin = await User.findById(req.session.login);
     if (!userLogin) {
       req.flash("error", "Please log in first.");
       return res.redirect("/login");
     }
 
-    // Fetch auction product details and ensure seller details are included
+    // // Fetch auction product details
     const product = await Product.findOne({
       _id: new mongoose.Types.ObjectId(req.body.productId),
       status: "approved",
@@ -98,30 +114,27 @@ module.exports.doBid = async (req, res) => {
       req.flash("error", "Auction not found or has ended.");
       return res.redirect("/buyer");
     }
-
-    // Check for duplicate bid
-    const existingBid = await AuctionSession.findOne({
-      product: req.body.productId,
+    const b = req.body
+    /**
+     * before doing save
+     * 1. check if already have a bid price
+     * 2. return false if duplicated
+     */
+    const a = new AuctionSession({
+      product: b.productId,
+      seller: b.sellerId,
       buyer: userLogin._id,
-      bid: req.body.submitPrice
+      bid: b.submitPrice
     });
 
-    if (existingBid) {
-      req.flash("error", "You have already placed this bid.");
-      return res.redirect(`/buyer/auction/room/${req.params.productId}`);
-    }
-
-    const newBid = new AuctionSession({
-      product: req.body.productId,
-      seller: product.seller._id,
-      buyer: userLogin._id,
-      bid: req.body.submitPrice
-    });
-
-    await newBid.save();
-    res.redirect(`/buyer/auction/room/${req.params.productId}`);
+    await a.save()
+    // // Fetch the buyer's participation data
+    // const participation = await Participation.findOne({ buyer: req.session.login, product: req.params.productId });
+    res.redirect(`/buyer/auction/room/${req.params.productId}`)
+    // // Fetch unread notifications
+    // const notifications = await Notification.find({ user: userLogin._id, status: "unread" });
   } catch (error) {
-    console.error("Error submitting bid:", error);
+    console.error("Error loading Auction Session Room:", error);
     req.flash("error", "Something went wrong.");
     res.redirect("/buyer");
   }

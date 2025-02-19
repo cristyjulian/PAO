@@ -5,6 +5,8 @@ const authVerifyEdiController = require('../controllers/auth/verifyEditControlle
 const authLogoutController = require('../controllers/auth/logoutController');
 const authTermsController = require('../controllers/auth/termsController');
 const profileController = require('../controllers/auth/profileController');
+const editController = require('../controllers/auth/editController');
+
 
 const adminIndexController = require('../controllers/admin/indexController');
 const adminManageCategoryController = require('../controllers/admin/manageCategoryController');
@@ -19,6 +21,9 @@ const farmerIndexController = require('../controllers/farmer/indexController');
 const buyerIndexController = require('../controllers/buyer/indexController');
 const orderController = require('../controllers/buyer/orderController');
 const resultController = require('../controllers/buyer/resultController');
+
+
+
 const currentbidController = require('../controllers/buyer/currentbidController');
 
 
@@ -35,6 +40,8 @@ module.exports = function (app) {
   app.get('/terms', authTermsController.index);
   app.post('/upload-profile', profileController.uploadProfilePicture);
   app.get('/profile', profileController.getProfile);
+  app.get('/getUserInfo', editController.getUserInfo);
+  app.post('/updateUserInfo', editController.updateUserInfo);
 
   app.get('/admin/index', adminIndexController.index);
   app.get('/admin/manageCategory', adminManageCategoryController.index);
@@ -64,14 +71,21 @@ module.exports = function (app) {
   app.post('/farmer/processOrder', farmerIndexController.processOrder);
   app.get('/farmer/deleteOrder/:id', farmerIndexController.deleteOrder);
   app.get('/farmer/showParticipated', farmerIndexController.showParticipated);
+  app.get('/farmer/getAuctionResults', farmerIndexController.getAuctionResults);
+  app.post('/farmer/approveAuctionResult', farmerIndexController.approveAuctionResult);
+  app.get('/farmer/getbuyers', farmerIndexController.getbuyers);
+ 
 
 
   
-  app.get('/buyer/markNotificationAsRead', buyerIndexController.markNotificationAsRead);
+  app.get('/buyer/notification', buyerIndexController.markNotificationAsRead);
   app.get('/buyer/index', buyerIndexController.index);
   app.get('/buyer/getNotifications', buyerIndexController.getNotifications);
   app.post('/buyer/confirm-purchase', buyerIndexController.confirmPurchase);
   app.get('/buyer/result', resultController.result);
+  app.get('/buyer/result/:id', buyerIndexController.get);
+
+
 
 
   app.post('/buyer/getProducts', orderController.getProducts);

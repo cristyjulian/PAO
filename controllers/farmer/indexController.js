@@ -8,6 +8,8 @@ const Product = require('../../models/product');
 const upload = require('../../middlewares/uploads');
 const Notification = require('../../models/notification');
 const Order = require('../../models/order');
+const ResultAuction = require('../../models/resultAuction'); // Import ResultAuction model
+const AuctionSession = require('../../models/auctionSession');
 
 const SITE_TITLE = 'PAO';
 
@@ -311,5 +313,128 @@ module.exports.showParticipated = async (req, res) => {
   } catch (error) {
     console.error("Error fetching participated orders:", error);
     res.status(500).json({ error: "Server error" });
+  }
+};
+
+module.exports.processAuctionResult = async (req, res) => {
+  const { auctionId } = req.body;
+
+  try {
+    // ✅ Find the auction and ensure it exists
+    const auction = await Auction.findById(auctionId).populate("product").populate("highestBidder");
+
+    if (!auction) {
+      return res.status(404).json({ message: "Auction not found" });
+    }
+
+    if (!auction.highestBidder) {
+      return res.status(400).json({ message: "No bids were placed on this auction." });
+    }
+
+    // ✅ Update the auction status to 'Completed'
+    auction.status = "Completed";
+    await auction.save();
+
+    // ✅ Notify the highest bidder about the auction result
+    const notification = new Notification({
+      user: auction.highestBidder._id, // Winner ID
+      message: `Congratulations! You won the auction for '${auction.product.name}'. Please proceed with the transaction.`,
+      status: "unread",
+    });
+
+    await notification.save();
+
+    res.json({ message: "Auction processed successfully!" });
+  } catch (error) {
+    console.error("❌ Error processing auction:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+module.exports.getAuctionResults = async (req, res) => {
+  try {
+    const results = await ResultAuction.find()
+      .populate('product')
+      .populate('highestBid.bidder'); // Populate winner details
+
+    if (!results.length) {
+      return res.json([]);
+    }
+
+    const formattedResults = results.map(result => ({
+      _id: result._id,
+      winnerName: result.highestBid.bidder.name,
+      productName: result.product.name,
+      winningBid: result.highestBid.bidAmount,
+      status: result.auctionEnded ? "Pending Approval" : "Approved"
+    }));
+
+    res.json(formattedResults);
+  } catch (error) {
+    console.error('Error fetching auction results:', error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+module.exports.approveAuctionResult = async (req, res) => {
+  const { resultId } = req.body;
+
+  try {
+    const resultAuction = await ResultAuction.findById(resultId).populate("highestBid.bidder").populate("product");
+
+    if (!resultAuction) {
+      return res.status(404).json({ message: "Auction result not found" });
+    }
+
+    if (resultAuction.auctionEnded) {
+      return res.status(400).json({ message: "Auction already approved." });
+    }
+
+    // Update the result status to 'Approved'
+    resultAuction.auctionEnded = true;
+    await resultAuction.save();
+
+    // Notify the winner
+    const notification = new Notification({
+      user: resultAuction.highestBid.bidder._id, // Buyer ID
+      message: `Congratulations! Your auction bid for '${resultAuction.product.name}' has been approved. Please coordinate with the seller for payment.`,
+      status: "unread",
+    });
+
+    await notification.save();
+
+    res.json({ message: "Auction result approved successfully!" });
+  } catch (error) {
+    console.error("Error approving auction result:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+module.exports.getbuyers = async (req, res) => {
+  try {
+      const products = await Product.find({ seller: req.user._id }).lean();
+
+      for (let product of products) {
+          // Fetch buyers from orders (Retail Purchase)
+          const orders = await Order.find({ product: product._id, status: 'approved' })
+              .populate('buyer', 'firstName lastName')
+              .lean();
+          product.buyers = orders.map(order => ({
+              name: `${order.buyer.firstName} ${order.buyer.lastName}`
+          }));
+
+          // Fetch auction participants (Wholesale Purchase)
+          const participants = await AuctionParticipation.find({ product: product._id })
+              .populate('buyer', 'firstName lastName')
+              .lean();
+          product.participants = participants.map(participant => ({
+              name: `${participant.buyer.firstName} ${participant.buyer.lastName}`
+          }));
+      }
+
+      res.render('farmer/index', { products });
+  } catch (error) {
+      console.error(error);
+      res.status(500).send("Server Error");
   }
 };

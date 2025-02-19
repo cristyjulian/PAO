@@ -1,5 +1,10 @@
+/* General Styles */
+
+
+
+
 /* Ensure modal stays centered */
-#buyersModal {
+#buyersModal,  #townModal {
     position: fixed;
     top: 50%;
     left: 50%;
@@ -10,61 +15,8 @@
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
     max-width: 90%;
     width: 700px;
-    max-height: 90vh; /* Prevents overflow */
+    max-height: 90vh; /* Ensures all modals have the same height */
     overflow-y: auto; /* Enables vertical scrolling */
-}
-
-/* Force scrollbar to the right */
-html {
-    overflow-y: scroll;
-    scrollbar-width: thin; /* For Firefox */
-    scrollbar-color: gray transparent;
-}
-
-/* Custom Scrollbar for Webkit Browsers (Chrome, Edge, Safari) */
-::-webkit-scrollbar {
-    width: 10px; /* Adjust width */
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f1f1; /* Light gray background */
-}
-
-::-webkit-scrollbar-thumb {
-    background: #888; /* Darker scrollbar */
-    border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #555; /* Darker on hover */
-}
-
-/* Ensure modal overlay covers the whole screen */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.4);
-    display: none;
-    z-index: 999;
-}
-
-
-/* Responsive for Smaller Screens */
-@media (max-width: 768px) {
-    #buyersModal {
-        width: 95%; /* Adjust width for tablets & smaller screens */
-        padding: 20px;
-    }
-}
-
-@media (max-width: 480px) {
-    #buyersModal {
-        width: 98%; /* Ensures it fits small screens */
-        padding: 15px;
-    }
 }
 
 /* Ensure modal overlay covers entire screen */
@@ -79,17 +31,38 @@ html {
     z-index: 999;
 }
 
-/* Centered Header */
-#buyersModal h2 {
+/* Auction Results Modal - Same size as Orders and Town Modal */
+.modal {
+    background: rgb(154, 149, 149);
+    padding: 20px;
+    width: 80%;
+    max-width: 600px;
+    max-height: 90vh; /* Matches Orders and Town Modal */
+    overflow-y: auto; /* Enables scrolling */
     text-align: center;
-    color: rgb(241, 248, 241);
-    font-weight: bold;
 }
 
-/* Table Styles */
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #buyersModal {
+        width: 95%;
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    #buyersModal {
+        width: 98%;
+        padding: 15px;
+    }
+}
+
+/* Table Styling */
 table {
     width: 100%;
-    
+    border-collapse: collapse;
+    margin-top: 10px;
 }
 
 th, td {
@@ -101,13 +74,25 @@ th, td {
 th {
     background: green;
     color: white;
+    font-weight: bold;
 }
 
-/* Pagination Styling */
+tr:nth-child(even) {
+    background-color: #534c4c;
+}
+
+/* Column Widths */
+th:nth-child(1), td:nth-child(1) { width: 20%; }
+th:nth-child(2), td:nth-child(2) { width: 20%; }
+th:nth-child(3), td:nth-child(3) { width: 10%; }
+th:nth-child(4), td:nth-child(4) { width: 15%; }
+th:nth-child(5), td:nth-child(5) { width: 35%; }
+
+/* Pagination */
 .pagination-container {
     display: flex;
     justify-content: center;
-    flex-wrap: wrap; /* Ensures buttons wrap properly on smaller screens */
+    flex-wrap: wrap;
     margin-top: 10px;
     gap: 5px;
 }
@@ -115,6 +100,7 @@ th {
 .pagination-container button {
     padding: 8px 12px;
     font-size: 14px;
+    cursor: pointer;
 }
 
 .pagination-container button:hover {
@@ -128,13 +114,6 @@ th {
     font-weight: bold;
 }
 
-/* Fix Column Widths */
-th:nth-child(1), td:nth-child(1) { width: 20%; } /* Buyer Name */
-th:nth-child(2), td:nth-child(2) { width: 20%; } /* Product */
-th:nth-child(3), td:nth-child(3) { width: 10%; } /* Quantity */
-th:nth-child(4), td:nth-child(4) { width: 15%; } /* Price */
-th:nth-child(5), td:nth-child(5) { width: 35%; } /* Actions */
-
 /* Action Buttons */
 .action-buttons button {
     padding: 6px 10px;
@@ -145,11 +124,74 @@ th:nth-child(5), td:nth-child(5) { width: 35%; } /* Actions */
     cursor: pointer;
 }
 
-/* Button Colors */
-.approve-btn { background-color: #4CAF50; color: rgb(13, 2, 61); }
-.reject-btn { background-color: #FF9800; color: rgb(13, 2, 41); }
-.delete-btn { background-color: #F44336; color: rgb(15, 2, 49); }
+.approve-btn { background-color: #4CAF50; color: white; }
+.reject-btn { background-color: #FF9800; color: white; }
+.delete-btn { background-color: #F44336; color: white; }
 
 .approve-btn:hover { background-color: #45a049; }
 .reject-btn:hover { background-color: #e68a00; }
 .delete-btn:hover { background-color: #d32f2f; }
+
+/* Fullscreen Button */
+.fullscreen-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-height: 90vh;
+    background-color: #b2cbb3;
+    color: white;
+    padding: 12px 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background 0.3s ease-in-out;
+}
+
+.fullscreen-btn:hover {
+    background-color: #45a049;
+}
+
+.auction-icon {
+    width: 24px;
+    height: 24px;
+}
+
+/* Auction Modal */
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgb(154, 149, 149);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(67, 66, 66, 0.3);
+    z-index: 999;
+    width: 80%;
+    max-width: 600px;
+    text-align: center;
+}
+
+.modal h3 {
+    margin-bottom: 15px;
+    font-size: 20px;
+    color: #333;
+}
+
+/* Close Button */
+.close-btn {
+    margin-top: 15px;
+    padding: 10px 15px;
+    background: #d9534f;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.close-btn:hover {
+    background: #c9302c;
+}

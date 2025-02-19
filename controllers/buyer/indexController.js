@@ -5,7 +5,10 @@ const Product = require("../../models/product"); // Import Product model
 const Notification = require("../../models/notification");
 const Order = require("../../models/order");
 const AuctionParticipation = require("../../models/participateAuction.js");
-const AuctionSession = require("../../models/auctionSession");
+const ResultAuction = require('../../models/resultAuction'); // Import ResultAuction model
+const mongoose = require('mongoose');
+
+
 
 module.exports.index = async (req, res) => {
   try {
@@ -335,5 +338,36 @@ module.exports.getNotifications = async (req, res) => {
   } catch (error) {
     console.error("Error fetching notifications:", error);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+module.exports.get = async (req, res) => {
+  try {
+      const auctionId = req.params.id;
+
+      // Validate ID format
+      if (!mongoose.Types.ObjectId.isValid(auctionId)) {
+          return res.status(400).send('Invalid Auction ID');
+      }
+
+      console.log("Auction ID:", auctionId); // Debugging: Check if ID is correct
+      
+      // Fetch auction result
+      const auctionResult = await ResultAuction.findById(auctionId)
+          .populate('highestBid.bidder')
+          .populate('product');
+        
+
+      console.log("Auction Result:", auctionResult); // Debugging: Check fetched data
+
+      if (!auctionResult) {
+          return res.status(404).send('Auction result not found');
+      }
+
+      res.render('buyer/result', { auctionResult });
+
+  } catch (error) {
+      console.error(error);
+      res.status(500).send('Server error');
   }
 };

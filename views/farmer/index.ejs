@@ -12,8 +12,7 @@
     <link
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
-    
-
+        
 <body>
 
     <header>
@@ -66,7 +65,36 @@
                     <div id="pagination" class="pagination-container"></div>
                     <button class="close-btn" onclick="closeOrdersModal()">Close</button>
                 </div>
+                <li>
+                    <button class="fullscreen-btn" onclick="openAuctionResultsModal()">
+                        <img src="/public/img/trophy.webp" alt="Auction Icon" class="auction-icon">
+                        <span class="icon-label">Auction Management</span>
+                    </button>
+                </li>
+                
+               <!-- Modal Overlay -->
+                <div class="modal-overlay" id="auctionModalOverlay" onclick="closeAuctionResultsModal()" style="display: none;"></div>
 
+                <!-- Auction Results Modal -->
+                <div id="auctionResultsModal" class="modal" style="display: none;">
+                    <h3 id="auctionTitle">Auction Results</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Winner Name</th>
+                                <th>Product</th>
+                                <th>Winning Bid</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auctionResultsList">
+                            <tr><td colspan="5">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                    <div id="auctionPagination" class="pagination-container"></div>
+                    <button class="close-btn" onclick="closeAuctionResultsModal()">Close</button>
+                </div>
 
                 <!-- Currently Bids Icon
                 <li><button class="bids-btn" onclick="viewCurrentBids()">
@@ -95,8 +123,8 @@
             
             </div>
             <div class="search-container">
-                <input type="text" placeholder="Search for products...">
-                <button>Search</button>
+               <!-- <input type="text" placeholder="Search for products...">
+                <button>Search</button>-->
                 
                 <div class="settings-container">
                     <button class="settings-button" onclick="toggleSettingsDropdown()">
@@ -218,7 +246,7 @@
                     <h2>Retail Products</h2>
                     <div class="product-container">
                         <% retailProducts.forEach(product => { %>
-                            <% if (product.status === 'approved') { %>  <!-- ✅ Display only approved products -->
+                            <% if (product.status === 'approved') { %> 
                                 <div class="product">
                                     <div class="product-image-container">
                                         <img src="<%= product.image ? '/public/img/product/' + (product.image.split('/').pop() || '') : '/public/img/default.png' %>" 
@@ -227,7 +255,18 @@
                                     <h4><%= product.name %></h4>
                                     <p>Price: ₱<%= product.minPrice ? product.minPrice.toFixed(2) : 'Not Available' %></p>
                                     <p>Pickup Address: <%= product.pickupAddress || 'Not Available' %></p>
-                                    <button onclick="showBuyers('<%= product._id %>')">Show Buyers</button>
+                                    
+                                    <!-- Show Buyers Button -->
+                                    <button onclick="toggleDropdown('buyers-<%= product._id %>')">Show Buyers</button>
+                                    <ul id="buyers-<%= product._id %>" class="dropdown" style="display: none;">
+                                        <% if (product.buyers && product.buyers.length > 0) { %> 
+                                            <% product.buyers.forEach(buyer => { %>
+                                                <li><%= buyer.name %></li>
+                                            <% }) %>
+                                        <% } else { %>
+                                            <li>No buyers yet</li>
+                                        <% } %>
+                                    </ul>
                                 </div>
                             <% } %>
                         <% }) %>
@@ -239,7 +278,7 @@
                     <h2>Wholesale Products</h2>
                     <div class="product-container">
                         <% wholesaleProducts.forEach(product => { %>
-                            <% if (product.status === 'approved') { %>  <!-- ✅ Display only approved products -->
+                            <% if (product.status === 'approved') { %> 
                                 <div class="product">
                                     <div class="product-image-container">
                                         <img src="<%= product.image ? '/public/img/product/' + (product.image.split('/').pop() || '') : '/public/img/default.png' %>" 
@@ -248,19 +287,33 @@
                                     <h4><%= product.name %></h4>
                                     <p>Minimum Price: ₱<%= product.minPrice ? product.minPrice.toFixed(2) : 'Not Available' %></p>
                                     <p>Pickup Address: <%= product.pickupAddress || 'Not Available' %></p>
-                                     <!-- Dynamic Button -->
+        
+                                    <!-- Dynamic Auction Button -->
                                     <button id="auction-button-<%= product._id %>" 
                                         class="participated"
                                         data-auction-start="<%= product.auctionStart %>" 
                                         data-auction-end="<%= product.auctionEnd %>">
                                         Loading...
                                     </button>
+        
+                                    <!-- Show Participants -->
+                                    <ul id="participants-<%= product._id %>" class="dropdown" style="display: none;">
+                                        <% if (product.participants && product.participants.length > 0) { %>
+                                            <% product.participants.forEach(participant => { %>
+                                                <li><%= participant.name %></li>
+                                            <% }) %>
+                                        <% } else { %>
+                                            <li>No participants yet</li>
+                                        <% } %>
+                                    </ul>
                                 </div>
                             <% } %>
                         <% }) %>
                     </div>
                 <% } %>
             </div>
+        
+        
         
             <!-- Category-Based Products Section -->
             <div id="category-products-section" style="display: none;">
@@ -386,37 +439,46 @@
     <script>
 
 function handleAuctionButton(productId, auctionStart, auctionEnd) {
-        const button = document.getElementById(`auction-button-${productId}`);
-        const now = new Date().getTime();
-        const start = new Date(auctionStart).getTime();
-        const end = new Date(auctionEnd).getTime();
+    const button = document.getElementById(`auction-button-${productId}`);
+    const now = new Date().getTime();
+    const start = new Date(auctionStart).getTime();
+    const end = new Date(auctionEnd).getTime();
 
-        if (now < start) {
-            // Auction has not started
-            button.innerText = "Auction Not Started";
-            button.disabled = true;
-        } else if (now >= start && now < end) {
-            // Auction is ongoing
-            button.innerText = "Show Participated";
-            button.disabled = false;
-            button.onclick = () => participateAuction(productId);
-        } else {
-            // Auction has ended
-            button.innerText = "Show Winner";
-            button.disabled = false;
-            button.onclick = () => window.location.href = "/buyer/result?productId=" + productId;
-        }
+    if (now < start) {
+        // Auction has not started
+        button.innerText = "Auction Not Started";
+        button.disabled = true;
+    } else if (now >= start && now < end) {
+        // Auction is ongoing
+        button.innerText = "Show Participated";
+        button.disabled = false;
+        button.onclick = () => toggleDropdown(`participants-${productId}`);
+    } else {
+        // Auction has ended
+        button.innerText = "Show Winner";
+        button.disabled = false;
+        button.onclick = () => window.location.href = "/buyer/result?productId=" + productId;
     }
+}
 
-    // Run for all auction buttons on page load
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll("button[id^='auction-button-']").forEach(button => {
-            const productId = button.id.replace('auction-button-', '');
-            const auctionStart = button.getAttribute("data-auction-start");
-            const auctionEnd = button.getAttribute("data-auction-end");
-            handleAuctionButton(productId, auctionStart, auctionEnd);
-        });
+function toggleDropdown(id) {
+    const dropdown = document.getElementById(id);
+    if (dropdown) {
+        dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
+    }
+}
+
+// Run for all auction buttons on page load
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("button[id^='auction-button-']").forEach(button => {
+        const productId = button.id.replace('auction-button-', '');
+        const auctionStart = button.getAttribute("data-auction-start");
+        const auctionEnd = button.getAttribute("data-auction-end");
+        handleAuctionButton(productId, auctionStart, auctionEnd);
     });
+});
+
+
 
     document.addEventListener("DOMContentLoaded", function () {
   const modal = document.getElementById("buyersModal");
@@ -714,6 +776,112 @@ function participateAuction(productId) {
 function closeModal(modalId) {
     document.getElementById(modalId).style.display = 'none';
 }
+
+
+let auctionResultsData = [];
+let currentAuctionPage = 1;
+const auctionItemsPerPage = 5;
+const auctionTotalPages = 10; // Fixed 1-10 pages
+
+document.addEventListener("DOMContentLoaded", () => {
+    fetchAuctionResults();
+});
+
+function fetchAuctionResults() {
+    fetch('/farmer/getAuctionResults') // This now filters auctions correctly in the backend
+        .then(response => response.json())
+        .then(data => {
+            console.log("Fetched Auction Results:", data);
+            auctionResultsData = data;
+            displayAuctionResults();
+            generateAuctionPagination();
+        })
+        .catch(error => console.error('Error fetching auction results:', error));
+}
+
+
+function openAuctionResultsModal() {
+    fetchAuctionResults();
+    document.getElementById('auctionResultsModal').style.display = 'block';
+    document.getElementById('auctionModalOverlay').style.display = 'block';
+}
+
+function closeAuctionResultsModal() {
+    document.getElementById('auctionResultsModal').style.display = 'none';
+    document.getElementById('auctionModalOverlay').style.display = 'none';
+}
+
+function displayAuctionResults() {
+    const auctionResultsList = document.getElementById('auctionResultsList');
+    auctionResultsList.innerHTML = "";
+
+    // Calculate Slice Range
+    const start = (currentAuctionPage - 1) * auctionItemsPerPage;
+    const end = start + auctionItemsPerPage;
+    const resultsToShow = auctionResultsData.slice(start, end);
+
+    if (resultsToShow.length === 0) {
+        auctionResultsList.innerHTML = `<tr><td colspan="5">No auction results available</td></tr>`;
+        return;
+    }
+
+    resultsToShow.forEach(result => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${result.winnerName}</td>
+            <td>${result.productName}</td>
+            <td>₱${result.winningBid}</td>
+            <td>${result.status}</td>
+            <td>
+                <button class="approve-btn" onclick="approveAuction('${result._id}')" 
+                    ${result.status === "Approved" ? "disabled" : ""}>
+                    ${result.status === "Approved" ? "✔ Approved" : "✔ Approve"}
+                </button>
+            </td>
+        `;
+        auctionResultsList.appendChild(row);
+    });
+}
+
+function generateAuctionPagination() {
+    const paginationContainer = document.getElementById('auctionPagination');
+    paginationContainer.innerHTML = ""; // Clear old buttons
+
+    for (let i = 1; i <= auctionTotalPages; i++) {
+        const button = document.createElement("button");
+        button.innerText = i;
+        button.className = i === currentAuctionPage ? "active-page" : "";
+        button.onclick = () => {
+            currentAuctionPage = i;
+            displayAuctionResults();
+            generateAuctionPagination();
+        };
+        paginationContainer.appendChild(button);
+    }
+}
+
+function approveAuction(resultId) {
+    fetch('/farmer/approveAuctionResult', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resultId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data.message);
+        auctionResultsData = auctionResultsData.map(result => {
+            if (result._id === resultId) {
+                result.status = "Approved";
+            }
+            return result;
+        });
+        displayAuctionResults();
+    })
+    .catch(error => console.error("Error approving auction result:", error));
+}
+
+
+
 
     </script>
 

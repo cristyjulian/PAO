@@ -12,6 +12,7 @@
             background-color: #f9f9f9;
             color: #333;
         }
+
         .container {
             width: 90%;
             margin: 20px auto;
@@ -20,18 +21,46 @@
             border-radius: 10px;
             overflow: hidden;
         }
+
         .banner {
             background: #1992f5;
             color: #fff;
             text-align: center;
             padding: 20px;
             font-size: 24px;
+            position: relative;
         }
+
+        /* Back Button Style */
+        .banner a {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #1a3553;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .banner a:hover {
+            background-color: #035214;
+            transform: scale(1.05);
+        }
+
+        .banner a:active {
+            background-color: #00408d;
+        }
+
         .content {
             display: flex;
             justify-content: space-between;
             padding: 20px;
         }
+
         .product-info, .winner-info, .bid-ranking {
             width: 30%;
             background: #f1f1f1;
@@ -39,28 +68,34 @@
             padding: 15px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
+
         .product-info img, .winner-info img {
             width: 80%;
             border-radius: 8px;
         }
+
         h2 {
             font-size: 18px;
             margin: 10px 0;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
         }
+
         th, td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: center;
         }
+
         th {
             background-color: #0e5ec5;
             color: white;
         }
+
         .footer {
             text-align: center;
             padding: 10px;
@@ -70,16 +105,24 @@
     </style>
 </head>
 <body>
+
     <div class="container">
-        <div class="banner">🏆 Bid Result 🏆</div>
+        <div class="banner">
+            🏆 Auction Result 🏆
+            <a href="javascript:history.back()">Back</a>
+        </div>
+
+
         <div class="content">
             <div class="product-info">
                 <h2>Product Information</h2>
-                <% if (auctionSession) { %>
-                    <img src="<%= auctionSession.product.imageUrl || '/default.jpg' %>" alt="<%= auctionSession.product.name %>">
+                <% if (auctionSession && auctionSession.product) { %>
+                    <img src="<%= auctionSession.product.image ? '/public/img/product/' + auctionSession.product.image.split('/').pop() : '/public/img/default.png' %>" 
+             alt="<%= auctionSession.product.name %>" style="max-width: 50%; height: auto;">
                     <p><strong>Name:</strong> <%= auctionSession.product.name %></p>
-                    <p><strong>Description:</strong> <%= auctionSession.product.description %></p>
-                    <p><strong>Starting Price:</strong> $<%= auctionSession.product.startingPrice %></p>
+                    <p><strong>Description:</strong> <%= auctionSession.product.productInfo %></p>
+                    <p><strong>Starting Price:</strong> ₱<%= auctionSession.product.minPrice %></p>
+                    <p><strong>Pickup Address:</strong> <%= auctionSession.product.pickupAddress %></p>
                 <% } else { %>
                     <p>No product data available</p>
                 <% } %>
@@ -88,32 +131,43 @@
             <div class="winner-info">
                 <h2>Winner</h2>
                 <% if (winner) { %>
-                    <img src="<%= winner.profilePicture || '/default.jpg' %>" alt="Winner Profile Picture">
-                    <p><strong>Name:</strong> <%= winner.name %></p>
-                    <p><strong>Phone:</strong> <%= winner.phone %></p>
-                    <p><strong>Winning Bid:</strong> $<%= winner.bidAmount %></p>
+                    <div>
+                    <img src="<%= winner.profilePicture || '/default.jpg' %>" alt="Winner Profile Picture" style="max-width: 90%; height: auto;">
+                    </div>
+                    <p><strong>Name:</strong> <%= winner.firstName %> <%= winner.lastName %></p>
+                    <p><strong>Phone:</strong> <%= winner.phoneNumber %></p>
+                    <p><strong>Winning Bid:</strong> ₱<%= highestBid %></p>
                 <% } else { %>
                     <p>No winner yet</p>
                 <% } %>
             </div>
 
             <div class="bid-ranking">
-                <h2>Bid Ranking</h2>
-                <table>
-                    <tr>
-                        <th>Rank</th>
-                        <th>Name</th>
-                        <th>Bid Price</th>
-                    </tr>
-                    <% bids.forEach((bid, index) => { %>
-                        <tr>
-                            <td><%= index + 1 %></td>
-                            <td><%= bid.name %></td>
-                            <td>$<%= bid.bidAmount %></td>
-                        </tr>
-                    <% }); %>
-                </table>
+                <h4>Bid Ranking</h4>
+                <% if (Array.isArray(bidRanking) && bidRanking.length > 0) { %>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Bidder</th>
+                                <th>Bid Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% bidRanking.forEach(function(bid) { %>
+                                <tr>
+                                    <td><%= bid.rank %></td>
+                                    <td><%= bid.bidder.firstName %> <%= bid.bidder.lastName %></td>
+                                    <td>₱<%= bid.bidAmount %></td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                <% } else { %>
+                    <p>No bids placed yet</p>
+                <% } %>
             </div>
+            
         </div>
         <div class="footer">
             <p>Congratulations to the winner! Thank you for participating in the auction.</p>
