@@ -189,15 +189,22 @@
                 </a>
                 <p>Product Name: <%= product.name %></p>
                 <p>Product Seller: 
-                    <%= product.seller ? (product.seller.firstName + " " + product.seller.lastName) : "Unknown Seller" %>
+                    <%= (product && product.seller && product.seller.firstName && product.seller.lastName) 
+                        ? product.seller.firstName + " " + product.seller.lastName 
+                        : (participation && participation.seller && participation.seller.firstName && participation.seller.lastName) 
+                        ? participation.seller.firstName + " " + participation.seller.lastName 
+                        : "Unknown" %>
                 </p>
+                
                 
                 <p>Minimum Price: ₱<%= product.minPrice %> <strong></strong></p>
                 <h3>Submit Your Price</h3>
                 <input type="hidden" name="sellerId" value='<%= product.seller._id %>' style="display: none;">
                 <input type="hidden" name="productId" value='<%= product._id %>' style="display: none;">
+                <p>you cannot submit an amount if it below the current amout</p>
                 <input type="number" id="submitPrice" name="submitPrice" placeholder="Enter Your Price"
                     style="padding: 5px; width: 200px;">
+                    
                 <button class="btn" onclick="submitPrice()">Submit</button>
             </form>
         </div>
@@ -205,15 +212,39 @@
 
     <!-- JavaScript -->
     <script>
-        // function submitPrice() {
-        //     const price = document.getElementById('submitPrice').value;
-        //     if (price) {
-        //         alert('Price Submitted: ' + price + ' $');
-        //     } else {
-        //         alert('Please enter a valid price.');
-        //     }
-        // }
+        
+        function submitPrice(event, minPrice, auctionEndTime) {
+    event.preventDefault(); // Prevent default form submission
 
+    const now = new Date().getTime();
+    const endTime = new Date(auctionEndTime).getTime();
+
+    if (now > endTime) {
+        alert("❌ Auction has ended! You cannot submit a bid.");
+        return;
+    }
+
+    const bidAmount = parseFloat(document.getElementById("submitPrice").value);
+
+    if (isNaN(bidAmount) || bidAmount <= minPrice) {
+        alert(`❌ Your bid must be higher than the minimum price of ₱${minPrice}.`);
+        return;
+    }
+
+    // If all checks pass, submit the form
+    document.querySelector("form").submit();
+}
+
+
+
+    window.onload = function () {
+        const auctionEndTime = "<%= auctionEnd %>"; // Ensure `auctionEnd` is defined in your server
+        startCountdown(auctionEndTime);
+
+        document.querySelector(".btn").addEventListener("click", function (event) {
+            submitPrice(event,  product.minPrice , auctionEndTime);
+        });
+    };
         
 
         // Timer Countdown
@@ -250,6 +281,10 @@
       };         function leaveBid() {
             window.location.href = "/buyer/index"; // Redirect to the buyer index page
         }
+
+
+
+        
     </script>
 </body>
 

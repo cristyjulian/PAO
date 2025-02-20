@@ -34,30 +34,31 @@
                     </button>
                 </li>
 
-                <div id="editInfoModal" class="modal">
-                    <div class="modal-content">
-                      <span class="close" onclick="closeModal()">&times;</span>
-                      <h2>Edit Profile</h2>
-                      <form id="editInfoForm" enctype="multipart/form-data">
-                        <div class="preview-container">
-                            <img id="editProfilePreview" src="" alt="Profile Picture Preview" style="width: 150px; height: 150px; object-fit: cover; border-radius: 50%;">
+                <!-- Profile Edit Modal -->
+                <div id="editInfoModal">
+                <form action="/updateUserInfo" method="POST" enctype="multipart/form-data">
+                    <label>First Name:</label>
+                    <input type="text" id="editFirstName" name="firstName" required>
 
-                        </div>
-                        <label for="editImage">Choose Profile Picture</label>
-                        <input type="file" id="editImage" name="image" accept="image/*" onchange="previewEditImage(event)">
-                        
-                        <input type="text" id="editFirstName" name="firstName" placeholder="First Name" required>
-                        <input type="text" id="editLastName" name="lastName" placeholder="Last Name" required>
-                        <input type="text" id="editPhoneNumber" name="phoneNumber" placeholder="Phone Number" required>
-                  
-                        <input type="password" id="editPassword" name="password" placeholder="New Password (optional)">
-                  
-                        <button type="submit">Save Changes</button>
-                      </form>
-                    </div>
-                  </div>
-                  
+                    <label>Last Name:</label>
+                    <input type="text" id="editLastName" name="lastName" required>
 
+                    <label>Phone Number:</label>
+                    <input type="text" id="editPhoneNumber" name="phoneNumber" required>
+
+                    <label>Password (Leave blank to keep current):</label>
+                    <input type="password" id="editPassword" name="password">
+
+                    <label>Profile Picture:</label>
+                    <input type="file" id="editProfileImage" name="image" accept="image/*" onchange="previewEditImage(event)">
+
+                    <img id="editProfilePreview" src="/public/img/default-profile.png" alt="Profile Picture" width="100">
+
+                    <button type="submit">Update Profile</button>
+                </form>
+                </div>
+
+                  
                 <!-- Currently Bids Icon -->
             <li>
                 <button class="bids-btn" onclick="viewCurrentBids()">
@@ -774,19 +775,6 @@ function viewCurrentBids() {
                     let auctionStatus = '';
                     let auctionButton = '';
 
-                    // if (!auctionStartTime || !auctionEndTime) {
-                    //     auctionStatus = `<p class="error">Auction schedule not available.</p>`;
-                    //     auctionButton = `<button disabled class="disabled-btn">No Auction Data</button>`;
-                    // } else if (now < auctionStartTime) {
-                    //     auctionStatus = `<p class="upcoming">Auction starts on: ${auctionStartTime.toLocaleString()}</p>`;
-                    //     auctionButton = `<button disabled class="disabled-btn">Auction Not Started</button>`;
-                    // } else if (now >= auctionStartTime && now <= auctionEndTime) {
-                    //     auctionStatus = `<p class="ongoing">Auction is Live!</p>`;
-                    //     auctionButton = `<button onclick="joinAuction('${bid.auctionId}')">Join Auction</button>`;
-                    // } else {
-                    //     auctionStatus = `<p class="ended">Auction Ended</p>`;
-                    //     auctionButton = `<button disabled class="disabled-btn">Auction Ended</button>`;
-                    // }
 
                     const bidItem = `
                         <div class="bid-item">
@@ -855,42 +843,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-// Open Edit Profile Modal and Fetch User Data
-function editInformation() {
-  console.log("Fetching user data...");
-
-  fetch('/getUserInfo')
-    .then(response => response.json())
-    .then(user => {
-      console.log("Fetched user:", user);
-
-      if (!user || !user.firstName) {
-        alert("User data not found. Please try again.");
-        return;
-      }
-
-      // Populate the form with user data
-      document.getElementById('editFirstName').value = user.firstName || '';
-      document.getElementById('editLastName').value = user.lastName || '';
-      document.getElementById('editPhoneNumber').value = user.phoneNumber || '';
-
-      // Set profile picture preview
-      const profileImage = user.profilePicture ? user.profilePicture : '/public/img/default-profile.png';
-      document.getElementById('editProfilePreview').src = profileImage;
-
-      document.getElementById('editInfoModal').style.display = 'block';
-    })
-    .catch(error => {
-      console.error("Error fetching user info:", error);
-      alert("Error loading user data. Check console.");
-    });
-}
-
-// Close Modal
-function closeModal() {
-  document.getElementById('editInfoModal').style.display = 'none';
-}
-
 // Preview Image Before Upload
 function previewEditImage(event) {
   const reader = new FileReader();
@@ -902,45 +854,6 @@ function previewEditImage(event) {
   }
 }
 
-// Handle Form Submission via AJAX
-document.getElementById('editInfoForm').addEventListener('submit', function (event) {
-  event.preventDefault();
-
-  const formData = new FormData(this);
-
-  // Debugging: Log form data before sending
-  console.log("Form Data Sent:", [...formData.entries()]);
-
-  fetch('/updateUserInfo', {
-    method: 'POST',
-    body: formData
-  })
-    .then(response => response.json())
-    .then(result => {
-      console.log("Update Response:", result);
-
-      if (result.success) {
-        document.getElementById('updateSuccessMessage').innerText = "Profile updated successfully!";
-        
-        // Update UI without reloading
-        document.getElementById('editFirstName').value = formData.get('firstName');
-        document.getElementById('editLastName').value = formData.get('lastName');
-        document.getElementById('editPhoneNumber').value = formData.get('phoneNumber');
-
-        if (result.profilePicture) {
-          document.getElementById('editProfilePreview').src = result.profilePicture;
-        }
-
-        setTimeout(closeModal, 1500); // Close modal after 1.5s
-      } else {
-        alert(result.message);
-      }
-    })
-    .catch(error => {
-      console.error('Error updating profile:', error);
-      alert("An error occurred while updating. Please try again.");
-    });
-});
 
 
 </script>
