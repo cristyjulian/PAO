@@ -205,6 +205,7 @@ module.exports.confirmParticipation = async (req, res) => {
     }
     const checkParticipation = await AuctionParticipation.findOne({
       product: productId,
+<<<<<<< HEAD
       buyer: req.session.login, // Now it checks only for this specific buyer
     });
     if (checkParticipation) {
@@ -212,6 +213,13 @@ module.exports.confirmParticipation = async (req, res) => {
       return res.redirect("/buyer/index");
     }
     
+=======
+    });
+    if (checkParticipation) {
+      req.flash("success", "You already participated to this Product .");
+      return res.redirect("/buyer/index");
+    }
+>>>>>>> c42aa9918de99db9345067f94708590f6dedf2ff
 
     // Save participation in the database
     const participation = new AuctionParticipation({

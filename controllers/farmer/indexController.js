@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const express = require('express');
 const multer = require('multer');
 const fs = require('fs');
@@ -10,13 +11,26 @@ const Notification = require('../../models/notification');
 const Order = require('../../models/order');
 const ResultAuction = require('../../models/resultAuction'); // Import ResultAuction model
 const AuctionSession = require('../../models/auctionSession');
+=======
+const express = require("express");
+const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
+const User = require("../../models/user");
+const Category = require("../../models/category");
+const Product = require("../../models/product");
+const upload = require("../../middlewares/uploads");
+const Notification = require("../../models/notification");
+const Order = require("../../models/order");
+>>>>>>> c42aa9918de99db9345067f94708590f6dedf2ff
 
-const SITE_TITLE = 'PAO';
+const SITE_TITLE = "PAO";
 
 module.exports.index = async (req, res) => {
   try {
     const userLogin = await User.findById(req.session.login);
     if (!userLogin) {
+<<<<<<< HEAD
             req.flash('error', 'Please log in first.');
             return res.redirect('/login');
     }
@@ -64,11 +78,73 @@ module.exports.index = async (req, res) => {
         res.redirect('/login');
   }
 };
+=======
+      req.flash("error", "Please log in first.");
+      return res.redirect("/login");
+    }
+>>>>>>> c42aa9918de99db9345067f94708590f6dedf2ff
 
+    const categories = await Category.find();
+
+    // Fetch only the products added by the logged-in farmer and exclude rejected ones
+    const products = await Product.find({
+      seller: req.session.login,
+      status: { $ne: "rejected" },
+    });
+
+    // Separate products by type
+    const retailProducts = products.filter(
+      (product) => product.productType === "retail"
+    );
+    const wholesaleProducts = products.filter(
+      (product) => product.productType === "wholesale"
+    );
+
+    // Group products by category
+    const groupedProducts = categories.map((category) => ({
+      category,
+      retailProducts: retailProducts.filter(
+        (product) => product.category.toString() === category._id.toString()
+      ),
+      wholesaleProducts: wholesaleProducts.filter(
+        (product) => product.category.toString() === category._id.toString()
+      ),
+    }));
+
+    // ✅ If there's a notification ID in the query, update it to "read"
+    if (req.query.notification_id) {
+      await Notification.findByIdAndUpdate(req.query.notification_id, {
+        status: "read",
+      });
+    }
+
+    // Fetch unread notifications
+    const notifications = await Notification.find({ user: req.session.login });
+
+    res.render("farmer/index.ejs", {
+      site_title: SITE_TITLE,
+      title: "Home",
+      session: req.session,
+      categories,
+      userLogin,
+      groupedProducts,
+      retailProducts,
+      wholesaleProducts,
+      messages: req.flash(),
+      currentUrl: req.originalUrl,
+      notifications,
+    });
+  } catch (error) {
+    console.error("Error loading farmer dashboard:", error);
+    req.flash("error", "Something went wrong.");
+    res.redirect("/login");
+  }
+};
 
 module.exports.addProduct = (req, res) => {
   upload(req, res, async (err) => {
     if (err) {
+<<<<<<< HEAD
             req.flash('error', err.message);
             return res.redirect('/farmer/index');
     }
@@ -76,10 +152,29 @@ module.exports.addProduct = (req, res) => {
     if (!req.file) {
             req.flash('error', 'Please upload a product image.');
             return res.redirect('/farmer/index');
+=======
+      req.flash("error", err.message);
+      return res.redirect("/farmer/index");
     }
 
-        const { category, productType, name, minPrice, productInfo, auctionStart, auctionEnd, pickupAddress } = req.body;
+    if (!req.file) {
+      req.flash("error", "Please upload a product image.");
+      return res.redirect("/farmer/index");
+>>>>>>> c42aa9918de99db9345067f94708590f6dedf2ff
+    }
 
+    const {
+      category,
+      productType,
+      name,
+      minPrice,
+      productInfo,
+      auctionStart,
+      auctionEnd,
+      pickupAddress,
+    } = req.body;
+
+<<<<<<< HEAD
         if (!category || !productType || !name || !minPrice || !productInfo || !pickupAddress) {
             req.flash('error', 'All fields, including pickup address, are required.');
             return res.redirect('/farmer/index');
@@ -89,6 +184,24 @@ module.exports.addProduct = (req, res) => {
             const productImagePath = '/img/product/' + req.file.filename;
 
             // Ensure auction fields are stored only if they are provided
+=======
+    if (
+      !category ||
+      !productType ||
+      !name ||
+      !minPrice ||
+      !productInfo ||
+      !pickupAddress
+    ) {
+      req.flash("error", "All fields, including pickup address, are required.");
+      return res.redirect("/farmer/index");
+    }
+
+    try {
+      const productImagePath = "/img/product/" + req.file.filename;
+
+      // Create a new product with status "pending"
+>>>>>>> c42aa9918de99db9345067f94708590f6dedf2ff
       const newProduct = new Product({
         category,
         productType,
@@ -266,6 +379,7 @@ module.exports.deleteOrder = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 
 module.exports.getBuyersForProducts = async (req, res) => {
   try {
@@ -278,6 +392,30 @@ module.exports.getBuyersForProducts = async (req, res) => {
 
     if (!orders || orders.length === 0) {
       return res.status(404).json({ message: "No buyers found for this product." });
+=======
+module.exports.showBuyer = async (req, res) => {
+    try {
+        const productId = req.query.productId;
+        if (!productId) {
+            return res.status(400).json({ error: "Product ID is required" });
+        }
+
+        // Fetch orders for the given productId
+        const orders = await Order.find({ product: productId }).populate('buyer', 'firstName lastName');
+console.log('b',orders)
+        // Extract buyer details
+        const buyers = orders.map(order => ({
+            firstName: order.buyer ? order.buyer.firstName : "Unknown",
+            lastName: order.buyer ? order.buyer.lastName : "Buyer"
+        }));
+
+        // Send JSON response instead of rendering a new page
+        return res.json({ buyers });
+
+    } catch (error) {
+        console.error("Error fetching buyers:", error);
+        return res.status(500).json({ error: "Server error" });
+>>>>>>> c42aa9918de99db9345067f94708590f6dedf2ff
     }
 
     // ✅ Extract buyers' details
@@ -314,6 +452,7 @@ module.exports.showParticipated = async (req, res) => {
     console.error("Error fetching participated orders:", error);
     res.status(500).json({ error: "Server error" });
   }
+<<<<<<< HEAD
 };
 
 module.exports.processAuctionResult = async (req, res) => {
@@ -437,4 +576,6 @@ module.exports.getbuyers = async (req, res) => {
       console.error(error);
       res.status(500).send("Server Error");
   }
+=======
+>>>>>>> c42aa9918de99db9345067f94708590f6dedf2ff
 };

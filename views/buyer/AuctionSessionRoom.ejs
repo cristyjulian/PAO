@@ -171,7 +171,10 @@
             <% topBids.forEach((bid, index) => { %>
                 <%if(index > 2){%>
                     <div class="bidder">
+<<<<<<< HEAD
                         <p><strong><%= index + 1 %></strong></p> <!-- Ranking Number -->
+=======
+>>>>>>> c42aa9918de99db9345067f94708590f6dedf2ff
                         <p>Name: <strong><%= bid.buyer.firstName ?? '' %> <%= bid.buyer.lastName ?? '' %></strong></p>
                         <p>Submitted Price: <strong> ₱<%= bid.bid %></strong></p>
                     </div>

@@ -80,19 +80,33 @@ console.log("🏆 Top Bids:", topBids);
 module.exports.doBid = async (req, res) => {
   try {
     console.log("Session Data:", req.session);
+<<<<<<< HEAD
     console.log("req.body:", req.body);
     console.log("req.params.productId:", req.params.productId);
 
+=======
+    console.log("req", req.body);
+    console.log("req", req.params.productId);
+    // // Check if user is logged in
+>>>>>>> c42aa9918de99db9345067f94708590f6dedf2ff
     const userLogin = await User.findById(req.session.login);
     if (!userLogin) {
       req.flash("error", "Please log in first.");
       return res.redirect("/login");
     }
 
+<<<<<<< HEAD
     // Fetch the participation details properly
     const participation = await AuctionParticipation.findById(req.params.productId)
       .populate("product")
       .lean();
+=======
+    // // Fetch auction product details
+    const product = await Product.findOne({
+      _id: new mongoose.Types.ObjectId(req.body.productId),
+      status: "approved",
+    }).populate("seller", "firstName lastName");
+>>>>>>> c42aa9918de99db9345067f94708590f6dedf2ff
 
     if (!participation || !participation.product) {
       req.flash("error", "Auction not found or has ended.");
@@ -125,9 +139,18 @@ module.exports.doBid = async (req, res) => {
       bid: bidAmount,
     });
 
+<<<<<<< HEAD
     await bid.save();
 
     res.redirect(`/buyer/auction/room/${req.params.productId}`);
+=======
+    await a.save()
+    // // Fetch the buyer's participation data
+    // const participation = await Participation.findOne({ buyer: req.session.login, product: req.params.productId });
+    res.redirect(`/buyer/auction/room/${req.params.productId}`)
+    // // Fetch unread notifications
+    // const notifications = await Notification.find({ user: userLogin._id, status: "unread" });
+>>>>>>> c42aa9918de99db9345067f94708590f6dedf2ff
   } catch (error) {
     console.error("Error processing bid:", error);
     req.flash("error", "Something went wrong.");
