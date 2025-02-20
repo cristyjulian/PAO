@@ -78,11 +78,11 @@ module.exports.index = async (req, res) => {
         res.redirect('/login');
   }
 };
-=======
+
       req.flash("error", "Please log in first.");
       return res.redirect("/login");
     }
->>>>>>> c42aa9918de99db9345067f94708590f6dedf2ff
+
 
     const categories = await Category.find();
 
@@ -144,7 +144,7 @@ module.exports.index = async (req, res) => {
 module.exports.addProduct = (req, res) => {
   upload(req, res, async (err) => {
     if (err) {
-<<<<<<< HEAD
+
             req.flash('error', err.message);
             return res.redirect('/farmer/index');
     }
@@ -152,7 +152,7 @@ module.exports.addProduct = (req, res) => {
     if (!req.file) {
             req.flash('error', 'Please upload a product image.');
             return res.redirect('/farmer/index');
-=======
+
       req.flash("error", err.message);
       return res.redirect("/farmer/index");
     }
@@ -160,7 +160,7 @@ module.exports.addProduct = (req, res) => {
     if (!req.file) {
       req.flash("error", "Please upload a product image.");
       return res.redirect("/farmer/index");
->>>>>>> c42aa9918de99db9345067f94708590f6dedf2ff
+
     }
 
     const {
@@ -174,7 +174,7 @@ module.exports.addProduct = (req, res) => {
       pickupAddress,
     } = req.body;
 
-<<<<<<< HEAD
+
         if (!category || !productType || !name || !minPrice || !productInfo || !pickupAddress) {
             req.flash('error', 'All fields, including pickup address, are required.');
             return res.redirect('/farmer/index');
@@ -184,7 +184,7 @@ module.exports.addProduct = (req, res) => {
             const productImagePath = '/img/product/' + req.file.filename;
 
             // Ensure auction fields are stored only if they are provided
-=======
+
     if (
       !category ||
       !productType ||
@@ -200,8 +200,8 @@ module.exports.addProduct = (req, res) => {
     try {
       const productImagePath = "/img/product/" + req.file.filename;
 
-      // Create a new product with status "pending"
->>>>>>> c42aa9918de99db9345067f94708590f6dedf2ff
+      // Create a new  product with status "pending"
+
       const newProduct = new Product({
         category,
         productType,
@@ -379,7 +379,7 @@ module.exports.deleteOrder = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
+
 
 module.exports.getBuyersForProducts = async (req, res) => {
   try {
@@ -392,7 +392,7 @@ module.exports.getBuyersForProducts = async (req, res) => {
 
     if (!orders || orders.length === 0) {
       return res.status(404).json({ message: "No buyers found for this product." });
-=======
+
 module.exports.showBuyer = async (req, res) => {
     try {
         const productId = req.query.productId;
@@ -415,7 +415,7 @@ console.log('b',orders)
     } catch (error) {
         console.error("Error fetching buyers:", error);
         return res.status(500).json({ error: "Server error" });
->>>>>>> c42aa9918de99db9345067f94708590f6dedf2ff
+
     }
 
     // ✅ Extract buyers' details
@@ -452,7 +452,7 @@ module.exports.showParticipated = async (req, res) => {
     console.error("Error fetching participated orders:", error);
     res.status(500).json({ error: "Server error" });
   }
-<<<<<<< HEAD
+
 };
 
 module.exports.processAuctionResult = async (req, res) => {
@@ -576,6 +576,5 @@ module.exports.getbuyers = async (req, res) => {
       console.error(error);
       res.status(500).send("Server Error");
   }
-=======
->>>>>>> c42aa9918de99db9345067f94708590f6dedf2ff
+
 };
