@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 const express = require('express');
 const multer = require('multer');
 const fs = require('fs');
@@ -11,7 +11,7 @@ const Notification = require('../../models/notification');
 const Order = require('../../models/order');
 const ResultAuction = require('../../models/resultAuction'); // Import ResultAuction model
 const AuctionSession = require('../../models/auctionSession');
-=======
+
 const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
@@ -22,7 +22,7 @@ const Product = require("../../models/product");
 const upload = require("../../middlewares/uploads");
 const Notification = require("../../models/notification");
 const Order = require("../../models/order");
->>>>>>> c42aa9918de99db9345067f94708590f6dedf2ff
+
 
 const SITE_TITLE = "PAO";
 
@@ -30,7 +30,7 @@ module.exports.index = async (req, res) => {
   try {
     const userLogin = await User.findById(req.session.login);
     if (!userLogin) {
-<<<<<<< HEAD
+
             req.flash('error', 'Please log in first.');
             return res.redirect('/login');
     }
